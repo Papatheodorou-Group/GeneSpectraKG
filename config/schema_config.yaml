@@ -1,21 +1,92 @@
 # add your desired knowledge graph components here
 
-protein:
-    represented_as: node
-    preferred_id: uniprot
-    label_in_input: uniprot_protein
+# protein:
+#     represented_as: node
+#     preferred_id: uniprot
+#     label_in_input: uniprot_protein
 
-disease:
-    represented_as: node
-    preferred_id: doid
-    label_in_input: do_disease
+# disease:
+#     represented_as: node
+#     preferred_id: doid
+#     label_in_input: do_disease
     
-protein interaction:
-    is_a: pairwise molecular interaction
-    represented_as: edge
-    label_in_input: protein_protein_interaction
+# protein interaction:
+#     is_a: pairwise molecular interaction
+#     represented_as: edge
+#     label_in_input: protein_protein_interaction
 
-protein to disease association:
-    is_a: association
+# protein to disease association:
+#     is_a: association
+#     represented_as: edge
+#     label_in_input: protein_disease_association
+
+
+## I think the preferred id and properties need to be in line with HGNC
+
+gene:
+    represented_as: node
+    preferred_id: ensembl_gene_id
+    label_in_input: gene
+    is_a: biological entity
+    properties:
+        external_gene_name: str
+
+# cell type needs to be associated with tissue
+cell type:
+    represented_as: node
+    preferred_id: cell_ontology_id
+    label_in_input: cell_type
+    is_a: biological entity
+    properties:
+        cell_type_name: str
+        tissue_name: str
+        uberon_tissue_id: str
+
+
+species:
+    represented_as: node
+    preferred_id: ncbi_txid
+    label_in_input: species
+    is_a: biological entity
+    properties:
+        species_scientific_name: str
+
+
+orthologous group:
+    represented_as: node
+    preferred_id: eggnog_id
+    label_in_input: orthologous_group
+    is_a: biological entity
+    properties:
+        eggnog_dataset: str # at which layer the orhologous group is calculated, e.g. mammalia; eukaryota...
+
+
+gene in orthologous group:
     represented_as: edge
-    label_in_input: protein_disease_association
+    is_a: association
+    label_in_input: gene_in_orthologous_group
+
+gene from species:
+    represented_as: edge
+    is_a: association
+    label_in_input: gene_from_species
+
+cell type from species:
+    represented_as: edge
+    is_a: association
+    label_in_input: cell_type_from_species
+
+gene enriched in cell type:
+    represented_as: edge
+    is_a: association
+    label_in_input: gene_enriched_in_cell_type
+
+# gene enhanced in cell type:
+#     represented_ad: edge
+#     is_a: association
+#     label_in_input: gene_enhanced_in_cell_type
+
+
+
+
+#### fix the ontology

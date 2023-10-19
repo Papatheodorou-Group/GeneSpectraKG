@@ -1,3 +1,6 @@
+# The GeneSpectraKG is built using the BioCypther project template
+Yuyao Song <ysong@ebi.ac.uk>
+
 # BioCypher project template
 A quick way to set up a BioCypher-driven knowledge graph pipeline.
 
