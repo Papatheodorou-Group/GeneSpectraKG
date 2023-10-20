@@ -57,7 +57,8 @@ class GeneSpectraAdapterOrthologousGroupField(Enum):
     """
 
     ORTHOLOGOUS_GROUP_ID = "eggnog_id"
-    DATASET = "eggnog_dataset"
+    EGGNOG_DATASET_NAME = "eggnog_dataset_name"
+    EGGNOG_DATASET_ID = 'eggnog_dataset_id'
 
 
 class GeneSpectraAdapterEdgeType(Enum):
@@ -102,7 +103,7 @@ class GeneSpectraAdapter:
     ):
         self._set_types_and_fields(node_types, node_fields, edge_types, edge_fields)
 
-    def load_genespectra_data(self):
+    def load_genespectra_data(self, source_file: str = "data/test_genespectra.csv"):
 
         """
         Read genespectra output csv and get dataframe for relevant fields.
@@ -112,7 +113,7 @@ class GeneSpectraAdapter:
         # read data
 
         self.data = pd.read_csv(
-            "data/test_genespectra.csv", sep="\t", header=0
+            source_file, sep="\t", header=0, dtype=str, # read all properties as str, nxbi_txid can get error for being int
         )
 
         # filter only relevant fields
@@ -191,7 +192,7 @@ class GeneSpectraAdapter:
             yield (
                 node[GeneSpectraAdapterCellTypeField.CELL_TYPE_ID.value],
                 "cell_type",
-                {"cell_type_nale": node[GeneSpectraAdapterCellTypeField.CELL_TYPE_NAME.value],
+                {"cell_type_name": node[GeneSpectraAdapterCellTypeField.CELL_TYPE_NAME.value],
                 "uberon_tissue_id": node[GeneSpectraAdapterCellTypeField.TISSUE_ID.value],
                 "tissue_name": node[GeneSpectraAdapterCellTypeField.TISSUE_NAME.value],},
             )
@@ -205,7 +206,8 @@ class GeneSpectraAdapter:
             yield (
                 node[GeneSpectraAdapterOrthologousGroupField.ORTHOLOGOUS_GROUP_ID.value],
                 "orthologous_group",
-                {"eggnog_dataset": node[GeneSpectraAdapterOrthologousGroupField.DATASET.value],},
+                {"eggnog_dataset_name": node[GeneSpectraAdapterOrthologousGroupField.EGGNOG_DATASET_NAME.value],
+                 "eggnog_dataset_id": node[GeneSpectraAdapterOrthologousGroupField.EGGNOG_DATASET_ID.value],},
             )
 
 
@@ -228,7 +230,22 @@ class GeneSpectraAdapter:
         # dict for now)
 
         # Cell type from species
-        for _, row in self.data.iterrows():
+
+
+        ct_from_species_df = self.data[
+            [
+                field.value
+                for field in GeneSpectraAdapterCellTypeField
+                if field.value in self.data.columns
+            ] +
+            [
+                field.value
+                for field in GeneSpectraAdapterSpeciesField
+                if field.value in self.data.columns
+            ]
+        ].drop_duplicates()
+
+        for _, row in ct_from_species_df.iterrows():
             ct_id = row[GeneSpectraAdapterCellTypeField.CELL_TYPE_ID.value]
             sp_id = row[GeneSpectraAdapterSpeciesField.SPECIES_ID.value]
             _id = hashlib.md5((ct_id + sp_id).encode("utf-8")).hexdigest()
@@ -241,7 +258,22 @@ class GeneSpectraAdapter:
             )
 
         # gene_from_species
-        for _, row in self.data.iterrows():
+
+        gene_from_species_df = self.data[
+            [
+                field.value
+                for field in GeneSpectraAdapterGeneField
+                if field.value in self.data.columns
+            ] +
+            [
+                field.value
+                for field in GeneSpectraAdapterSpeciesField
+                if field.value in self.data.columns
+            ]
+        ].drop_duplicates()
+
+
+        for _, row in gene_from_species_df.iterrows():
             gene_id = row[GeneSpectraAdapterGeneField.GENE_ID.value]
             sp_id = row[GeneSpectraAdapterSpeciesField.SPECIES_ID.value]
             _id = hashlib.md5((gene_id + sp_id).encode("utf-8")).hexdigest()
@@ -254,7 +286,22 @@ class GeneSpectraAdapter:
             )
 
         # gene_in_orthologous_group
-        for _, row in self.data.iterrows():
+
+        gene_from_orthologous_group_df = self.data[
+            [
+                field.value
+                for field in GeneSpectraAdapterGeneField
+                if field.value in self.data.columns
+            ] +
+            [
+                field.value
+                for field in GeneSpectraAdapterOrthologousGroupField
+                if field.value in self.data.columns
+            ]
+        ].drop_duplicates()
+
+
+        for _, row in gene_from_orthologous_group_df.iterrows():
             gene_id = row[GeneSpectraAdapterGeneField.GENE_ID.value]
             og_id = row[GeneSpectraAdapterOrthologousGroupField.ORTHOLOGOUS_GROUP_ID.value]
             _id = hashlib.md5((gene_id + og_id).encode("utf-8")).hexdigest()
@@ -266,7 +313,21 @@ class GeneSpectraAdapter:
                 {},
             )
         #  gene_enriched_in_cell_type
-        for _, row in self.data.iterrows():
+
+        gene_enriched_in_cell_type_df = self.data[
+            [
+                field.value
+                for field in GeneSpectraAdapterGeneField
+                if field.value in self.data.columns
+            ] +
+            [
+                field.value
+                for field in GeneSpectraAdapterCellTypeField
+                if field.value in self.data.columns
+            ]
+        ].drop_duplicates()
+
+        for _, row in gene_enriched_in_cell_type_df.iterrows():
             gene_id = row[GeneSpectraAdapterGeneField.GENE_ID.value]
             ct_id = row[GeneSpectraAdapterCellTypeField.CELL_TYPE_ID.value]
             _id = hashlib.md5((gene_id + ct_id).encode("utf-8")).hexdigest()

@@ -27,7 +27,6 @@ gene:
     represented_as: node
     preferred_id: ensembl_gene_id
     label_in_input: gene
-    is_a: biological entity
     properties:
         external_gene_name: str
 
@@ -36,7 +35,7 @@ cell type:
     represented_as: node
     preferred_id: cell_ontology_id
     label_in_input: cell_type
-    is_a: biological entity
+    is_a: anatomical entity  # biolink 
     properties:
         cell_type_name: str
         tissue_name: str
@@ -47,7 +46,7 @@ species:
     represented_as: node
     preferred_id: ncbi_txid
     label_in_input: species
-    is_a: biological entity
+    is_a: cellular organism  # biolink 
     properties:
         species_scientific_name: str
 
@@ -56,14 +55,14 @@ orthologous group:
     represented_as: node
     preferred_id: eggnog_id
     label_in_input: orthologous_group
-    is_a: biological entity
+    is_a: gene family # biolink 
     properties:
-        eggnog_dataset: str # at which layer the orhologous group is calculated, e.g. mammalia; eukaryota...
-
+        eggnog_dataset_name: str # at which layer the orhologous group is calculated, e.g. mammalia; eukaryota...
+        eggnog_dataset_id: str
 
 gene in orthologous group:
     represented_as: edge
-    is_a: association
+    is_a: gene to gene family association
     label_in_input: gene_in_orthologous_group
 
 gene from species:
