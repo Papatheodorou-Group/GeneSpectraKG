@@ -26,6 +26,7 @@ class GeneSpectraAdapterNodeType(Enum):
 class GeneSpectraAdapterGeneField(Enum):
     """
     Define possible fields the adapter can provide for genes.
+    The names correspond to the column names in the genespectra input file
     """
 
     GENE_ID = "ensembl_gene_id"
@@ -63,7 +64,7 @@ class GeneSpectraAdapterOrthologousGroupField(Enum):
 
 class GeneSpectraAdapterEdgeType(Enum):
     """
-    Enum for the types of the protein adapter.
+    Enum for the types of the edges.
     """
 
     GENE_IN_ORTHOLOGOUS_GROUP = "gene_in_orthologous_group"
@@ -73,13 +74,14 @@ class GeneSpectraAdapterEdgeType(Enum):
     GENE_ENHANCED_IN_CELL_TYPE = "gene_enhanced_in_cell_type"
 
 
-# class GeneSpectraAdapterProteinProteinEdgeField(Enum):
-#     """
-#     Define possible fields the adapter can provide for protein-protein edges.
-#     """
+## fields relevant to the edges
 
-#     INTERACTION_TYPE = "interaction_type"
-#     INTERACTION_SOURCE = "interaction_source"
+class GeneSpectraAdapterEdgeField(Enum):
+    """
+    Enum for the fields of the edges.
+        
+    """
+    SPECIFICITY_CATEGORY = "specificity_category"
 
 
 class GeneSpectraAdapter:
@@ -102,6 +104,11 @@ class GeneSpectraAdapter:
         edge_fields: Optional[list] = None,
     ):
         self._set_types_and_fields(node_types, node_fields, edge_types, edge_fields)
+
+        ## load cells and ids
+        ## load eggnog ogs and genes memberships
+        ## load genespectra data
+        ## so far it is an all-in-one file
 
     def load_genespectra_data(self, source_file: str = "data/test_genespectra.csv"):
 
@@ -127,6 +134,9 @@ class GeneSpectraAdapter:
                 if field.value in self.data.columns
             ]
         ]
+
+        self.data_enriched = self.data.loc[self.data.specificity_category == 'enriched']
+        self.data_enhanced = self.data.loc[self.data.specificity_category  == 'enhanced']
 
         self.gene = self.data[
             [
@@ -209,8 +219,6 @@ class GeneSpectraAdapter:
                 {"eggnog_dataset_name": node[GeneSpectraAdapterOrthologousGroupField.EGGNOG_DATASET_NAME.value],
                  "eggnog_dataset_id": node[GeneSpectraAdapterOrthologousGroupField.EGGNOG_DATASET_ID.value],},
             )
-
-
 
 
     def get_edges(self):
@@ -313,8 +321,9 @@ class GeneSpectraAdapter:
                 {},
             )
         #  gene_enriched_in_cell_type
+        ## rewrite: get a table of gene enriched in cell type and gene ehnanced in cell type
 
-        gene_enriched_in_cell_type_df = self.data[
+        gene_enriched_in_cell_type_df = self.data_enriched[
             [
                 field.value
                 for field in GeneSpectraAdapterGeneField
@@ -336,6 +345,33 @@ class GeneSpectraAdapter:
                 gene_id,
                 ct_id,
                 "gene_enriched_in_cell_type",
+                {},
+            )
+
+        #  gene_enhanced_in_cell_type
+
+        gene_enhanced_in_cell_type_df = self.data_enhanced[
+            [
+                field.value
+                for field in GeneSpectraAdapterGeneField
+                if field.value in self.data.columns
+            ] +
+            [
+                field.value
+                for field in GeneSpectraAdapterCellTypeField
+                if field.value in self.data.columns
+            ]
+        ].drop_duplicates()
+
+        for _, row in gene_enhanced_in_cell_type_df.iterrows():
+            gene_id = row[GeneSpectraAdapterGeneField.GENE_ID.value]
+            ct_id = row[GeneSpectraAdapterCellTypeField.CELL_TYPE_ID.value]
+            _id = hashlib.md5((gene_id + ct_id).encode("utf-8")).hexdigest()
+            yield (
+                _id,
+                gene_id,
+                ct_id,
+                "gene_enhanced_in_cell_type",
                 {},
             )
         # for _, row in self.data.iterrows():
@@ -382,7 +418,7 @@ class GeneSpectraAdapter:
         if edge_fields:
             self.edge_fields = edge_fields
         else:
-            self.edge_fields = [field for field in chain()]
+            self.edge_fields = [field for field in GeneSpectraAdapterEdgeField]
 
 
 # class Node:

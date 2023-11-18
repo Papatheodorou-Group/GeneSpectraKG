@@ -45,6 +45,7 @@ node_fields = [
 edge_types = [
     GeneSpectraAdapterEdgeType.CELL_TYPE_FROM_SPECIES,
     GeneSpectraAdapterEdgeType.GENE_ENHANCED_IN_CELL_TYPE,
+    GeneSpectraAdapterEdgeType.GENE_ENRICHED_IN_CELL_TYPE,
     GeneSpectraAdapterEdgeType.GENE_FROM_SPECIES,
     GeneSpectraAdapterEdgeType.GENE_IN_ORTHOLOGOUS_GROUP,
 ]
@@ -58,7 +59,7 @@ adapter = GeneSpectraAdapter(
     # we can leave edge fields empty, defaulting to all fields in the adapter
 )
 
-adapter.load_genespectra_data(source_file='data/human_macaque_genespectraKG_test.tsv')
+adapter.load_genespectra_data(source_file='data/human_macaque_genespectraKG_full.tsv')
 
 
 # Create a knowledge graph from the adapter
