@@ -57,7 +57,7 @@ class GeneSpectraAdapterOrthologousGroupField(Enum):
     Define possible fields the adapter can provide for genes.
     """
 
-    ORTHOLOGOUS_GROUP_ID = "eggnog_id"
+    ORTHOLOGOUS_GROUP_ID = "eggnog_og_id"
     EGGNOG_DATASET_NAME = "eggnog_dataset_name"
     EGGNOG_DATASET_ID = 'eggnog_dataset_id'
 
@@ -120,7 +120,7 @@ class GeneSpectraAdapter:
         # read data
 
         self.eggnog = pd.read_csv(
-            eggnog_file, delimiter='\t', header=None, names=['taxa_id', 'og_id', 'num_species', 'num_sequences', 'species_id', 'sequences_id'], dtype=str,
+            eggnog_file, delimiter='\t', header=None, dtype=str,
         
         )
         
@@ -134,7 +134,7 @@ class GeneSpectraAdapter:
             ]
         ]
 
-        
+
 
         self.genespectra = pd.read_csv(
             genespectra_file, sep="\t", header=0, dtype=str, # read all properties as str, nxbi_txid can get error for being int

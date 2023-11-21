@@ -2,6 +2,7 @@ import pandas as pd
 import re
 import biomart
 
+
 def filter_and_extract(row, species_ids: list):
     """filter and extract the records relevant to the species of interest from eggnog6 raw data
 
@@ -50,6 +51,8 @@ def filter_eggnog_ogs(og_members: pd.DataFrame, species_ids_keep=None):
     """
 
     res = pd.DataFrame(og_members.apply(filter_and_extract, species_ids = species_ids_keep, axis=1))
+    if res.shape[0] == 0:
+        raise ValueError('not all species are in EggNOG, this is quite unlikely so please check the species NCBI txids are correct')
     eggnog_ogs = res.dropna().reset_index(drop=True).drop(['species_id', 'sequences_id', 'species_id_filtered'], axis=1).explode('sequence_id_filtered').reset_index(drop=True)
     eggnog_ogs[['species_id', 'sequence_id']] = eggnog_ogs['sequence_id_filtered'].str.split('.',expand=True)
     return eggnog_ogs
@@ -68,13 +71,16 @@ def eggnog_to_ensembl_gene(eggnog_ogs: pd.DataFrame, species_name_id: dict):
     ## remember that after strsplit the species_id is a str
 
     species_name = str(list(species_name_id.keys())[0])
-    print(f"processing species {species_name}, eggNOG id {species_id_value}")
+    
+    print("Connecting to ensembl server")
 
     server = biomart.BiomartServer("http://www.ensembl.org/biomart")
     dataset = server.datasets[f'{species_name}_gene_ensembl']
     
     attributes = ['ensembl_gene_id', 'external_gene_name', 'ensembl_peptide_id']
     filters = {'ensembl_peptide_id': eggnog_ogs.loc[eggnog_ogs.species_id == species_id_value]['sequence_id'].values}  
+
+    print("Downloading ensembl response")
 
     response = dataset.search({'query': filters,
             'attributes': attributes,
@@ -85,8 +91,11 @@ def eggnog_to_ensembl_gene(eggnog_ogs: pd.DataFrame, species_name_id: dict):
     # re-filter because sometimes biomart query doesnt work
     gene_to_peptide = gene_to_peptide.loc[gene_to_peptide.ensembl_peptide_id.isin(eggnog_ogs.loc[eggnog_ogs.species_id == species_id_value]['sequence_id'].values)]
     
+    print("Mapping peptides in EggNOG OGs to ensembl genes")
+
     eggnog_and_ensembl = gene_to_peptide.merge(eggnog_ogs.loc[eggnog_ogs.species_id == species_id_value], left_on='ensembl_peptide_id', right_on='sequence_id')
     
+
     return eggnog_and_ensembl
 
 
@@ -102,9 +111,11 @@ def all_species_eggnog_to_ensembl(eggnog_ogs: pd.DataFrame, species_names_ids: d
     """
     all_species_eggnog_and_ensembl = pd.DataFrame()
     for species_name_id_now in species_names_ids.items():
-        print(f"Processing species name {str(list(species_name_id_now.keys())[0])}, eggNOG id {str(list(species_name_id_now.keys())[0])}")
-        species_eggnog_and_ensembl = eggnog_to_ensembl_gene(eggnog_ogs, dict({species_name_id_now[0]: species_name_id_now[1]}))
-        all_species_eggnog_and_ensembl = all_species_eggnog_and_ensembl.append(species_eggnog_and_ensembl, ignore_index=True)
+        dict_now = dict({species_name_id_now[0]: species_name_id_now[1]})
+        print(f"Processing species name {str(list(dict_now.keys())[0])}, EggNOG id {str(list(dict_now.values())[0])}")
+        species_eggnog_and_ensembl = eggnog_to_ensembl_gene(eggnog_ogs, species_name_id=dict_now)
+        all_species_eggnog_and_ensembl = pd.concat([all_species_eggnog_and_ensembl, species_eggnog_and_ensembl], ignore_index=True)
+        print(f"Finish species name {str(list(dict_now.keys())[0])}, EggNOG id {str(list(dict_now.keys())[0])}")
     return all_species_eggnog_and_ensembl
 
 

@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "biocypher-project-template"
+name = "genespectrakg"
 version = "0.1.0"
 description = "Template for creating a BioCypher-driven knowledge graph"
 authors = [
