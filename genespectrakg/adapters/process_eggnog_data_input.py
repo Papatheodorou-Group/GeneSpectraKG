@@ -95,6 +95,8 @@ def eggnog_to_ensembl_gene(eggnog_ogs: pd.DataFrame, species_name_id: dict):
 
     eggnog_and_ensembl = gene_to_peptide.merge(eggnog_ogs.loc[eggnog_ogs.species_id == species_id_value], left_on='ensembl_peptide_id', right_on='sequence_id')
     
+    eggnog_and_ensembl['ncbi_txid'] = species_id_value
+    eggnog_and_ensembl['species_scientific_name'] = species_name
 
     return eggnog_and_ensembl
 

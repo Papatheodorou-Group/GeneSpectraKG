@@ -1,5 +1,5 @@
 from biocypher import BioCypher
-from template_package.adapters.genespectra_adapter import (
+from genespectrakg.adapters.genespectra_adapter_individual import (
     GeneSpectraAdapter,
     GeneSpectraAdapterNodeType,
     GeneSpectraAdapterEdgeType,
@@ -7,6 +7,7 @@ from template_package.adapters.genespectra_adapter import (
     GeneSpectraAdapterGeneField,
     GeneSpectraAdapterOrthologousGroupField,
     GeneSpectraAdapterSpeciesField,
+    GeneSpectraAdapterEdgeField,
 )
 
 # Instantiate the BioCypher interface
@@ -50,16 +51,29 @@ edge_types = [
     GeneSpectraAdapterEdgeType.GENE_IN_ORTHOLOGOUS_GROUP,
 ]
 
+edge_fields = [
+    GeneSpectraAdapterEdgeField.SPECIFICITY_CATEGORY,
+    GeneSpectraAdapterEdgeField.DISTRIBUTION_CATEGORY,
+    GeneSpectraAdapterEdgeField.SPECIFICITY_CATEGORY_TYPE,
+    GeneSpectraAdapterEdgeField.FRACTION_EXPRESSED,
+    GeneSpectraAdapterEdgeField.MAX_EXPRESSION,
+    GeneSpectraAdapterEdgeField.MEAN_EXPRESSION,
+    GeneSpectraAdapterEdgeField.NUMBER_EXPRESSED,
+    GeneSpectraAdapterEdgeField.SPECIFICITY_SCORE,
+]
+
 
 # Create a protein adapter instance
 adapter = GeneSpectraAdapter(
     node_types=node_types,
     node_fields=node_fields,
     edge_types=edge_types,
-    # we can leave edge fields empty, defaulting to all fields in the adapter
+    edge_fields=edge_fields,
 )
 
-adapter.load_genespectra_data(source_file='data/human_macaque_genespectraKG_full.tsv')
+adapter.load_genespectra_data(eggnog_file='data/MTG_eggnog_ensembl_mapped_mammalia.csv',
+                              cell_ontology_file='data/MTG_cell_type_to_ontology.csv', 
+                              genespectra_file='data/human_classes_subclass_processed.csv')
 
 
 # Create a knowledge graph from the adapter
