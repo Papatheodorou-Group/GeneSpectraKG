@@ -80,12 +80,7 @@ gene enriched in cell type:
     is_a: association
     label_in_input: gene_enriched_in_cell_type
 
-# gene enhanced in cell type:
-#     represented_ad: edge
-#     is_a: association
-#     label_in_input: gene_enhanced_in_cell_type
-
-
-
-
-#### fix the ontology
+gene enhanced in cell type:
+    represented_as: edge
+    is_a: association
+    label_in_input: gene_enhanced_in_cell_type
