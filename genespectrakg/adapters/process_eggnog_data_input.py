@@ -16,7 +16,7 @@ def filter_and_extract(row, species_ids: list):
     second_last_col = row['species_id'].split(",")  # split by comma
     last_col = row['sequences_id'].split(",")  # split by comma
 
-    if all(species_id in second_last_col for species_id in species_ids):
+    if any(species_id in second_last_col for species_id in species_ids):
         second_last_col = [col for col in second_last_col if re.match(fr'^({"|".join(species_ids)})', col)] # select relevant records
         last_col = [col for col in last_col if re.match(fr'^({"|".join(species_ids)})\.', col)] # select relevant records
         row['species_id_filtered'] = second_last_col
