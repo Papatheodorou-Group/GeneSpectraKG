@@ -30,7 +30,8 @@ class GeneSpectraAdapterGeneField(Enum):
     """
 
     GENE_ID = "ensembl_gene_id"
-    GENE_NAME = "external_gene_name"
+    # GENE_NAME = "external_gene_name"
+    GENE_NAME = "ncbi_gene_name"
 
 
 class GeneSpectraAdapterCellTypeField(Enum):
@@ -269,7 +270,7 @@ class GeneSpectraAdapter:
             yield (
                 node[GeneSpectraAdapterGeneField.GENE_ID.value],
                 "gene",
-                {"external_gene_name": node[GeneSpectraAdapterGeneField.GENE_NAME.value],},
+                {"ncbi_gene_name": node[GeneSpectraAdapterGeneField.GENE_NAME.value],},
             )
 
         print('get OG nodes from EggNOG')

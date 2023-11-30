@@ -27,16 +27,19 @@ def filter_and_extract(row, species_ids: list):
         row['sequence_id_filtered'] = None
         return row
     
-def read_eggnog6_raw(file_path: str):
+def read_eggnog6_raw(file_path: str, eggnog_dataset_name: str):
     """read eggnog6 raw data downloaded from the database
 
     :param file_path: path to the file, should be named e6.og2seqs_and_species.tsv and have 6 columns
+    :param eggnog_dataset_name: name of the taxa that eggnog is calculated on, such as 'mammalia'
     :type file_path: str
     :return: pd.DataFrame
     :rtype: pd.DataFrame
     """
 
-    return pd.read_csv(file_path, delimiter='\t', header=None, names=['eggnog_dataset_id', 'eggnog_og_id', 'num_species', 'num_sequences', 'species_id', 'sequences_id'])
+    df = pd.read_csv(file_path, delimiter='\t', header=None, names=['eggnog_dataset_id', 'eggnog_og_id', 'num_species', 'num_sequences', 'species_id', 'sequences_id'], dtype=str)
+    df['eggnog_dataset_name'] = eggnog_dataset_name
+    return df
 
 
 def filter_eggnog_ogs(og_members: pd.DataFrame, species_ids_keep=None):
@@ -120,6 +123,52 @@ def all_species_eggnog_to_ensembl(eggnog_ogs: pd.DataFrame, species_names_ids: d
         print(f"Finish species name {str(list(dict_now.keys())[0])}, EggNOG id {str(list(dict_now.keys())[0])}")
     return all_species_eggnog_and_ensembl
 
+def read_ncbi_gene2ensembl_raw(file_path):
+
+
+    df = pd.read_csv(file_path, delimiter='\t', header=None, names=['species_id', 'ncbi_gene_id', 'ensembl_gene_id',	'ensembl_refseq_rna',	'ensembl_rna_id',	'ensembl_refseq_peptide', 'ensembl_peptide_id'], dtype=str)
+    df.ensembl_peptide_id = df.ensembl_peptide_id.apply(lambda x: re.sub( '\..*$', "", x))
+    return df
+
+def read_ncbi_gene2name_raw(file_path):
+    # gene2accession file processed to spmplify using
+    # awk '$1==9595 {print$1"\t"$2"\t"$16}' gene2accession.tsv | sort | uniq | grep -v Assembly | grep -v - > gorilla_gene_id_to_symbol.tsv
+    return pd.read_csv(file_path, delimiter='\t', header=None, names=['species_id', 'ncbi_gene_id', 'ncbi_gene_name'], dtype=str)
+
+
+def eggnog_to_ncbi_gene(eggnog_ogs: pd.DataFrame, species_name_id: dict, ncbi_gene2ensembl: pd.DataFrame, ncbi_gene2accession: pd.DataFrame):
+    species_id_value = str(list(species_name_id.values())[0])
+    ## remember that after strsplit the species_id is a str
+
+    species_name = str(list(species_name_id.keys())[0])
+
+    ncbi_full = ncbi_gene2accession.merge(ncbi_gene2ensembl, left_on='ncbi_gene_id', right_on='ncbi_gene_id', how='right')
+
+    eggnog_and_ncbi = ncbi_full.merge(eggnog_ogs.loc[eggnog_ogs.species_id == species_id_value], left_on='ensembl_peptide_id', right_on='sequence_id')
+    
+    eggnog_and_ncbi['ncbi_txid'] = species_id_value
+    eggnog_and_ncbi['species_scientific_name'] = species_name
+
+    return eggnog_and_ncbi
+
+def all_species_eggnog_to_ncbi_ensembl(eggnog_ogs: pd.DataFrame, species_names_ids: dict, ncbi_files_dir: str):
+    all_species_eggnog_and_ncbi_ensembl = pd.DataFrame()
+    for species_name_id_now in species_names_ids.items():
+        dict_now = dict({species_name_id_now[0]: species_name_id_now[1]})
+        species_name_now=str(list(dict_now.keys())[0])
+        species_id_now=str(list(dict_now.values())[0])
+        print(f"Processing species name {species_name_now}, EggNOG id {species_id_now}")
+        gene2ensembl_now = read_ncbi_gene2ensembl_raw(file_path=f"{ncbi_files_dir}/{species_name_now}_gene2ensembl.tsv")
+        gene2name_now = read_ncbi_gene2name_raw(file_path=f"{ncbi_files_dir}/{species_name_now}_gene_id_to_symbol.tsv")
+        mapped_now = eggnog_to_ncbi_gene(eggnog_ogs=eggnog_ogs, species_name_id=dict_now, ncbi_gene2accession=gene2name_now, ncbi_gene2ensembl=gene2ensembl_now)
+
+        all_species_eggnog_and_ncbi_ensembl = pd.concat([all_species_eggnog_and_ncbi_ensembl, mapped_now], ignore_index=True)
+
+        print(f"Finishing species name {species_name_now}, EggNOG id {species_id_now}")
+
+    return all_species_eggnog_and_ncbi_ensembl
+
+        
 
 
 
