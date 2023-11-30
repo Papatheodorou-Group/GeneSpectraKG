@@ -28,7 +28,7 @@ gene:
     preferred_id: ensembl_gene_id
     label_in_input: gene
     properties:
-        external_gene_name: str
+        ncbi_gene_name: str
 
 # cell type needs to be associated with tissue
 cell type:
