@@ -23,6 +23,10 @@
 
 ## I think the preferred id and properties need to be in line with HGNC
 
+###############
+# Nodes
+###############
+
 gene:
     represented_as: node
     preferred_id: ensembl_gene_id
@@ -60,27 +64,40 @@ orthologous group:
         eggnog_dataset_name: str # at which layer the orhologous group is calculated, e.g. mammalia; eukaryota...
         eggnog_dataset_id: str
 
+###############
+# Associations
+###############
 gene in orthologous group:
     represented_as: edge
     is_a: gene to gene family association
     label_in_input: gene_in_orthologous_group
+    source: Gene # this syntax for biochatter select relationships, "pascalcase"
+    target: OrthologousGroup
 
 gene from species:
     represented_as: edge
     is_a: association
     label_in_input: gene_from_species
+    source: Gene
+    target: Species
 
 cell type from species:
     represented_as: edge
     is_a: association
     label_in_input: cell_type_from_species
+    source: CellType
+    target: Species
 
 gene enriched in cell type:
     represented_as: edge
     is_a: association
     label_in_input: gene_enriched_in_cell_type
+    source: Gene
+    target: CellType
 
 gene enhanced in cell type:
     represented_as: edge
     is_a: association
     label_in_input: gene_enhanced_in_cell_type
+    source: Gene
+    target: CellType
