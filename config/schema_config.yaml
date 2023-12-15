@@ -29,17 +29,19 @@
 
 gene:
     represented_as: node
-    preferred_id: ensembl_gene_id
+    preferred_id: ensembl
     label_in_input: gene
     properties:
-        ncbi_gene_name: str
+        external_gene_name: str
 
 # cell type needs to be associated with tissue
 cell type:
     represented_as: node
-    preferred_id: cell_ontology_id
-    label_in_input: cell_type
-    is_a: anatomical entity  # biolink 
+    preferred_id: cl
+    label_in_input: cell_type # this means giving it a node labeled as cell_type it will become a cell_type
+    # it cannot map to exact CL ids because I need to give all the CL labels (node id) here
+    # open an issue for feature request
+    is_a: cell  # biolink 
     properties:
         cell_type_name: str
         tissue_name: str
@@ -69,6 +71,8 @@ orthologous group:
 ###############
 gene in orthologous group:
     represented_as: edge
+    is_relationship: true
+    present_in_knowledge_graph: true
     is_a: gene to gene family association
     label_in_input: gene_in_orthologous_group
     source: Gene # this syntax for biochatter select relationships, "pascalcase"
@@ -76,6 +80,8 @@ gene in orthologous group:
 
 gene from species:
     represented_as: edge
+    is_relationship: true
+    present_in_knowledge_graph: true
     is_a: association
     label_in_input: gene_from_species
     source: Gene
@@ -83,6 +89,8 @@ gene from species:
 
 cell type from species:
     represented_as: edge
+    is_relationship: true
+    present_in_knowledge_graph: true
     is_a: association
     label_in_input: cell_type_from_species
     source: CellType
@@ -90,6 +98,8 @@ cell type from species:
 
 gene enriched in cell type:
     represented_as: edge
+    is_relationship: true
+    present_in_knowledge_graph: true
     is_a: association
     label_in_input: gene_enriched_in_cell_type
     source: Gene
@@ -97,6 +107,8 @@ gene enriched in cell type:
 
 gene enhanced in cell type:
     represented_as: edge
+    is_relationship: true
+    present_in_knowledge_graph: true
     is_a: association
     label_in_input: gene_enhanced_in_cell_type
     source: Gene

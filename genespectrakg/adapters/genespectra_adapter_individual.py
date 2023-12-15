@@ -30,8 +30,8 @@ class GeneSpectraAdapterGeneField(Enum):
     """
 
     GENE_ID = "ensembl_gene_id"
-    # GENE_NAME = "external_gene_name"
-    GENE_NAME = "ncbi_gene_name"
+    # GENE_NAME = "ncbi_gene_name"
+    GENE_NAME = "external_gene_name"
 
 
 class GeneSpectraAdapterCellTypeField(Enum):
@@ -147,7 +147,7 @@ class GeneSpectraAdapter:
 
 
         self.genespectra = pd.read_csv(
-            genespectra_file, sep=",", header=0, dtype=str, # read all properties as str, nxbi_txid can get error for being int
+            genespectra_file, sep=",", header=0, dtype=str,# read all properties as str, nxbi_txid can get error for being int
         )
 
         # filter only relevant fields
@@ -162,8 +162,8 @@ class GeneSpectraAdapter:
             ]
         ]
 
-        self.genespectra_enriched = self.genespectra.loc[self.genespectra.specificity_category_type == 'enriched']
-        self.genespectra_enhanced = self.genespectra.loc[self.genespectra.specificity_category_type  == 'enhanced']
+        self.genespectra_enriched = self.genespectra.loc[self.genespectra.specificity_category_type == 'enriched'].drop_duplicates()
+        self.genespectra_enhanced = self.genespectra.loc[self.genespectra.specificity_category_type  == 'enhanced'].drop_duplicates()
 
         self.cell_ontology = pd.read_csv(
             cell_ontology_file, sep=",", header=0, dtype=str, # read all properties as str, nxbi_txid can get error for being int
@@ -270,7 +270,7 @@ class GeneSpectraAdapter:
             yield (
                 node[GeneSpectraAdapterGeneField.GENE_ID.value],
                 "gene",
-                {"ncbi_gene_name": node[GeneSpectraAdapterGeneField.GENE_NAME.value],},
+                {"external_gene_name": node[GeneSpectraAdapterGeneField.GENE_NAME.value],},
             )
 
         print('get OG nodes from EggNOG')
