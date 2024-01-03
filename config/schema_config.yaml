@@ -38,7 +38,7 @@ gene:
 cell type:
     represented_as: node
     preferred_id: cl
-    label_in_input: cell_type # this means giving it a node labeled as cell_type it will become a cell_type
+    label_in_input: cell_type # this means giving it a node labeled as cell_type it will become a cell type node
     # it cannot map to exact CL ids because I need to give all the CL labels (node id) here
     # open an issue for feature request
     is_a: cell  # biolink 
@@ -50,7 +50,7 @@ cell type:
 
 species:
     represented_as: node
-    preferred_id: ncbi_txid
+    preferred_id: ncbitaxon
     label_in_input: species
     is_a: cellular organism  # biolink 
     properties:
@@ -59,7 +59,7 @@ species:
 
 orthologous group:
     represented_as: node
-    preferred_id: eggnog_id
+    preferred_id: eggnog
     label_in_input: orthologous_group
     is_a: gene family # biolink 
     properties:
