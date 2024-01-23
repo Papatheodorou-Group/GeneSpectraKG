@@ -1,5 +1,6 @@
 # GeneSpectra specific
-
+*.csv
+results/*.csv
 template_package/adapters/GeneSpectraKG.code-workspace
 data/
 

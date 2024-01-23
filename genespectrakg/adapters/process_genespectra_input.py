@@ -14,7 +14,13 @@ def preprocess_genespectra_output(gene_classes):
     result_specific = result_specific.apply(split_by_comma, axis=1)
     result_specific = result_specific.apply(determine_enriched_enhanced, axis=1)
     results_new = result_specific.explode(['enriched_group_split']).reset_index(drop=True)
-    results_few = results_new[['gene', 'specificity_category', 'spec_category', 'spec_score', 'dist_category', 'n_exp', 'mean_exp', 'max_exp', 'frac_exp', 'enriched_group_split']]
-    results_few.columns = ['external_gene_name', 'specificity_category_type', 'specificity_category', 'specificity_score', 'distribution_catehory', 'n_expressed', 'mean_expression', 'max_expression', 'fraction_expressed', 'cell_type_name']
+    results_few = results_new[['gene', 'specificity_category', 'spec_category', 'spec_score', 'dist_category', 'n_exp', 'mean_exp', 'max_exp', 'frac_exp', 'groups_expressed', 'enriched_group_split']]
+    results_few.columns = ['external_gene_name', 'specificity_category_type', 'specificity_category', 'specificity_score', 'distribution_catehory', 'n_expressed', 'mean_expression', 'max_expression', 'fraction_expressed', 'groups_expressed', 'cell_type_name']
     return results_few
 
+
+def preprocess_genespectra_output_low_spec(gene_classes):
+
+    results_lowspec = gene_classes.loc[gene_classes.spec_category == 'low cell type specificity'][['gene','spec_category', 'spec_score', 'dist_category', 'n_exp', 'mean_exp', 'max_exp', 'frac_exp', 'groups_expressed']]
+    results_lowspec.columns = ['external_gene_name', 'specificity_category', 'specificity_score', 'distribution_catehory', 'n_expressed', 'mean_expression', 'max_expression', 'fraction_expressed', 'groups_expressed']
+    return results_lowspec
