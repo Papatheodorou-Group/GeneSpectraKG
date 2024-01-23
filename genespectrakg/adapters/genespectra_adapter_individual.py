@@ -91,6 +91,7 @@ class GeneSpectraAdapterEdgeField(Enum):
     MEAN_EXPRESSION = 'mean_expression'
     MAX_EXPRESSION = 'max_expression'
     FRACTION_EXPRESSED = 'fraction_expressed'
+    GROUPS_EXPRESSED = 'groups_expressed'
 
 
 
@@ -182,14 +183,25 @@ class GeneSpectraAdapter:
         ]
 
         # get relevant records
-
-        self.gene = self.eggnog[
+        # to include both genes in eggnog but not specific
+        # and genes in genespectra but not in eggnog
+        # we need to merge both dataframes
+        self.gene = pd.concat([self.eggnog[
             [
                 field.value
                 for field in GeneSpectraAdapterGeneField
                 if field.value in self.eggnog.columns
             ]
-        ].drop_duplicates()
+        ].drop_duplicates(), self.genespectra[
+            [
+                field.value
+                for field in GeneSpectraAdapterGeneField
+                if field.value in self.genespectra.columns
+            ]
+        ].drop_duplicates()]
+            
+        ).drop_duplicates()
+
 
         self.orthologous_group = self.eggnog[
             [
@@ -264,7 +276,7 @@ class GeneSpectraAdapter:
         
         self.nodes = []
 
-        print('get gene nodes from EggNOG')
+        print('get gene nodes from genespectra and EggNOG')
 
         for _, node in self.gene.iterrows():
             yield (
@@ -350,7 +362,10 @@ class GeneSpectraAdapter:
     
     
         print('Get gene from species edges')
-        gene_from_species_df = self.eggnog[
+
+        ## include also genes quantified in genespectra but not in any eggnog group
+
+        gene_from_species_df = pd.concat([self.eggnog[
             [
                 field.value
                 for field in GeneSpectraAdapterGeneField
@@ -361,7 +376,20 @@ class GeneSpectraAdapter:
                 for field in GeneSpectraAdapterSpeciesField
                 if field.value in self.eggnog.columns
             ]
-        ].drop_duplicates()
+        ].drop_duplicates(), self.genespectra[
+            [
+                field.value
+                for field in GeneSpectraAdapterGeneField
+                if field.value in self.genespectra.columns
+            ] +
+            [
+                field.value
+                for field in GeneSpectraAdapterSpeciesField
+                if field.value in self.genespectra.columns
+            ]
+        ].drop_duplicates()]
+            
+        ).drop_duplicates()
 
 
         for _, row in gene_from_species_df.iterrows():
@@ -441,7 +469,8 @@ class GeneSpectraAdapter:
                 "max_expression" : row[GeneSpectraAdapterEdgeField.MAX_EXPRESSION.value],
                 "mean_expression": row[GeneSpectraAdapterEdgeField.MEAN_EXPRESSION.value],
                 "number_expressed": row[GeneSpectraAdapterEdgeField.NUMBER_EXPRESSED.value],
-                "fraction_expressed": row[GeneSpectraAdapterEdgeField.FRACTION_EXPRESSED.value],},
+                "fraction_expressed": row[GeneSpectraAdapterEdgeField.FRACTION_EXPRESSED.value],
+                "groups_expressed": row[GeneSpectraAdapterEdgeField.GROUPS_EXPRESSED.value],},
             )
 
     
@@ -479,7 +508,8 @@ class GeneSpectraAdapter:
                 "max_expression" : row[GeneSpectraAdapterEdgeField.MAX_EXPRESSION.value],
                 "mean_expression": row[GeneSpectraAdapterEdgeField.MEAN_EXPRESSION.value],
                 "number_expressed": row[GeneSpectraAdapterEdgeField.NUMBER_EXPRESSED.value],
-                "fraction_expressed": row[GeneSpectraAdapterEdgeField.FRACTION_EXPRESSED.value],},
+                "fraction_expressed": row[GeneSpectraAdapterEdgeField.FRACTION_EXPRESSED.value],
+                "groups_expressed": row[GeneSpectraAdapterEdgeField.GROUPS_EXPRESSED.value],},
             )
 
 
