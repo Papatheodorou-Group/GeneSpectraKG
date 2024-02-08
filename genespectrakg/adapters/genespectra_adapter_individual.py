@@ -32,6 +32,7 @@ class GeneSpectraAdapterGeneField(Enum):
     GENE_ID = "ensembl_gene_id"
     # GENE_NAME = "ncbi_gene_name"
     GENE_NAME = "external_gene_name"
+    PEPTIDE_ID = "ensembl_peptide_id"
 
 
 class GeneSpectraAdapterCellTypeField(Enum):
@@ -43,6 +44,9 @@ class GeneSpectraAdapterCellTypeField(Enum):
     CELL_TYPE_NAME = "cell_type_name"
     TISSUE_ID = "uberon_tissue_id"
     TISSUE_NAME = "tissue_name"
+    BROAD_TYPE = "broad_type" ## for MTG dataset cell broad types at various levels
+    BROAD_TYPE_2 = "broad_type_2"
+    BROAD_TYPE_3 = "broad_type_3"
 
 class GeneSpectraAdapterSpeciesField(Enum):
     """
@@ -73,6 +77,7 @@ class GeneSpectraAdapterEdgeType(Enum):
     CELL_TYPE_FROM_SPECIES = "cell_type_from_species"
     GENE_ENRICHED_IN_CELL_TYPE = "gene_enriched_in_cell_type"
     GENE_ENHANCED_IN_CELL_TYPE = "gene_enhanced_in_cell_type"
+    GENE_LOW_SPECIFICITY_IN_SPECIES = "gene_low_specificity_in_species"
 
 
 ## fields relevant to the edges
@@ -165,6 +170,7 @@ class GeneSpectraAdapter:
 
         self.genespectra_enriched = self.genespectra.loc[self.genespectra.specificity_category_type == 'enriched'].drop_duplicates()
         self.genespectra_enhanced = self.genespectra.loc[self.genespectra.specificity_category_type  == 'enhanced'].drop_duplicates()
+        self.genespectra_lowspec = self.genespectra.loc[self.genespectra.specificity_category_type  == 'low cell type specificity'].drop_duplicates()
 
         self.cell_ontology = pd.read_csv(
             cell_ontology_file, sep=",", header=0, dtype=str, # read all properties as str, nxbi_txid can get error for being int
@@ -282,7 +288,8 @@ class GeneSpectraAdapter:
             yield (
                 node[GeneSpectraAdapterGeneField.GENE_ID.value],
                 "gene",
-                {"external_gene_name": node[GeneSpectraAdapterGeneField.GENE_NAME.value],},
+                {"external_gene_name": node[GeneSpectraAdapterGeneField.GENE_NAME.value],
+                 "ensembl_peptide_id": node[GeneSpectraAdapterGeneField.PEPTIDE_ID.value],},
             )
 
         print('get OG nodes from EggNOG')
@@ -312,7 +319,10 @@ class GeneSpectraAdapter:
                 "cell_type",
                 {"cell_type_name": node[GeneSpectraAdapterCellTypeField.CELL_TYPE_NAME.value],
                 "uberon_tissue_id": node[GeneSpectraAdapterCellTypeField.TISSUE_ID.value],
-                "tissue_name": node[GeneSpectraAdapterCellTypeField.TISSUE_NAME.value],},
+                "tissue_name": node[GeneSpectraAdapterCellTypeField.TISSUE_NAME.value],
+                "broad_type": node[GeneSpectraAdapterCellTypeField.BROAD_TYPE.value],
+                "broad_type_2": node[GeneSpectraAdapterCellTypeField.BROAD_TYPE_2.value],
+                "broad_type_3": node[GeneSpectraAdapterCellTypeField.BROAD_TYPE_3.value],},
             )
         
     def get_edges(self):
@@ -511,6 +521,45 @@ class GeneSpectraAdapter:
                 "fraction_expressed": row[GeneSpectraAdapterEdgeField.FRACTION_EXPRESSED.value],
                 "groups_expressed": row[GeneSpectraAdapterEdgeField.GROUPS_EXPRESSED.value],},
             )
+
+        print('Get gene low specifricity in species edges')
+        gene_lowspec_in_sp_df = self.genespectra_lowspec[
+            [
+                field.value
+                for field in GeneSpectraAdapterGeneField
+                if field.value in self.genespectra_lowspec.columns
+            ] +
+            [
+                field.value
+                for field in GeneSpectraAdapterSpeciesField
+                if field.value in self.genespectra_lowspec.columns
+            ] +
+            [
+                field.value
+                for field in GeneSpectraAdapterEdgeField
+                if field.value in self.genespectra_lowspec.columns
+            ]
+        ].drop_duplicates()
+
+        for _, row in gene_lowspec_in_sp_df.iterrows():
+            gene_id = row[GeneSpectraAdapterGeneField.GENE_ID.value]
+            sp_id = row[GeneSpectraAdapterSpeciesField.SPECIES_ID.value]
+            _id = hashlib.md5((gene_id + sp_id).encode("utf-8")).hexdigest()
+            yield (
+                _id,
+                gene_id,
+                sp_id,
+                "gene_low_specificity_in_species",
+                {"specificity_category": row[GeneSpectraAdapterEdgeField.SPECIFICITY_CATEGORY.value],
+                "specificity_score": row[GeneSpectraAdapterEdgeField.SPECIFICITY_SCORE.value],
+                "distribution_category": row[GeneSpectraAdapterEdgeField.DISTRIBUTION_CATEGORY.value],
+                "max_expression" : row[GeneSpectraAdapterEdgeField.MAX_EXPRESSION.value],
+                "mean_expression": row[GeneSpectraAdapterEdgeField.MEAN_EXPRESSION.value],
+                "number_expressed": row[GeneSpectraAdapterEdgeField.NUMBER_EXPRESSED.value],
+                "fraction_expressed": row[GeneSpectraAdapterEdgeField.FRACTION_EXPRESSED.value],
+                "groups_expressed": row[GeneSpectraAdapterEdgeField.GROUPS_EXPRESSED.value],},
+            )
+
 
 
 

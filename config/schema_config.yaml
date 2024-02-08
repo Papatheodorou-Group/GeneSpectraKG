@@ -33,6 +33,7 @@ gene:
     label_in_input: gene
     properties:
         external_gene_name: str
+        ensembl_peptide_id: str
 
 # cell type needs to be associated with tissue
 cell type:
@@ -46,6 +47,9 @@ cell type:
         cell_type_name: str
         tissue_name: str
         uberon_tissue_id: str
+        broad_type: str
+        broad_type_2: str
+        broad_type_3: str
 
 
 species:
@@ -113,3 +117,12 @@ gene enhanced in cell type:
     label_in_input: gene_enhanced_in_cell_type
     source: Gene
     target: CellType
+
+gene low specificity in species:
+    represented_as: edge 
+    is_relationship: true
+    present_in_knowledge_graph: true
+    is_a: association
+    label_in_input: gene_low_specificity_in_species
+    source: Gene
+    target: Species
