@@ -315,9 +315,10 @@ class GeneSpectraAdapter:
 
         for _, node in self.cell_type.iterrows():
             yield (
-                node[GeneSpectraAdapterCellTypeField.CELL_TYPE_ID.value],
+                node[GeneSpectraAdapterCellTypeField.CELL_TYPE_NAME.value],
                 "cell_type",
                 {"cell_type_name": node[GeneSpectraAdapterCellTypeField.CELL_TYPE_NAME.value],
+                 "cell_ontology_id": node[GeneSpectraAdapterCellTypeField.CELL_TYPE_ID.value],
                 "uberon_tissue_id": node[GeneSpectraAdapterCellTypeField.TISSUE_ID.value],
                 "tissue_name": node[GeneSpectraAdapterCellTypeField.TISSUE_NAME.value],
                 "broad_type": node[GeneSpectraAdapterCellTypeField.BROAD_TYPE.value],
@@ -359,7 +360,7 @@ class GeneSpectraAdapter:
         ].drop_duplicates()
 
         for _, row in ct_from_species_df.iterrows():
-            ct_id = row[GeneSpectraAdapterCellTypeField.CELL_TYPE_ID.value]
+            ct_id = row[GeneSpectraAdapterCellTypeField.CELL_TYPE_NAME.value]
             sp_id = row[GeneSpectraAdapterSpeciesField.SPECIES_ID.value]
             _id = hashlib.md5((ct_id + sp_id).encode("utf-8")).hexdigest()
             yield (
@@ -466,7 +467,7 @@ class GeneSpectraAdapter:
 
         for _, row in gene_enriched_in_cell_type_df.iterrows():
             gene_id = row[GeneSpectraAdapterGeneField.GENE_ID.value]
-            ct_id = row[GeneSpectraAdapterCellTypeField.CELL_TYPE_ID.value]
+            ct_id = row[GeneSpectraAdapterCellTypeField.CELL_TYPE_NAME.value]
             _id = hashlib.md5((gene_id + ct_id).encode("utf-8")).hexdigest()
             yield (
                 _id,
@@ -505,7 +506,7 @@ class GeneSpectraAdapter:
 
         for _, row in gene_enhanced_in_cell_type_df.iterrows():
             gene_id = row[GeneSpectraAdapterGeneField.GENE_ID.value]
-            ct_id = row[GeneSpectraAdapterCellTypeField.CELL_TYPE_ID.value]
+            ct_id = row[GeneSpectraAdapterCellTypeField.CELL_TYPE_NAME.value]
             _id = hashlib.md5((gene_id + ct_id).encode("utf-8")).hexdigest()
             yield (
                 _id,
