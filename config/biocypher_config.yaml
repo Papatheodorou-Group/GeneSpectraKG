@@ -10,6 +10,7 @@ neo4j:
   array_delimiter: '|'
   skip_duplicate_nodes: true
   skip_bad_relationships: true
+  database_name: broadtaxo # new param for neo4j database name write_import_call for taxo cs data, default is called 'neo4j'
 
   # Ontology configuration
   head_ontology:

@@ -45,6 +45,7 @@ cell type:
     is_a: cell  # biolink 
     properties:
         cell_type_name: str
+        cell_ontology_id: str
         tissue_name: str
         uberon_tissue_id: str
         broad_type: str
