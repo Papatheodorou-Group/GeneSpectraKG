@@ -10,7 +10,8 @@ import hashlib
 logger.debug(f"Loading module {__name__}.")
 
 # reference:
-#https://github.com/biocypher/decider-genetics/blob/main/decider_genetics/adapters/cn_genes_adapter.py
+# https://github.com/biocypher/decider-genetics/blob/main/decider_genetics/adapters/cn_genes_adapter.py
+
 
 class GeneSpectraAdapterNodeType(Enum):
     """
@@ -44,9 +45,10 @@ class GeneSpectraAdapterCellTypeField(Enum):
     CELL_TYPE_NAME = "cell_type_name"
     TISSUE_ID = "uberon_tissue_id"
     TISSUE_NAME = "tissue_name"
-    BROAD_TYPE = "broad_type" ## for MTG dataset cell broad types at various levels
+    BROAD_TYPE = "broad_type"  ## for MTG dataset cell broad types at various levels
     BROAD_TYPE_2 = "broad_type_2"
     BROAD_TYPE_3 = "broad_type_3"
+
 
 class GeneSpectraAdapterSpeciesField(Enum):
     """
@@ -64,7 +66,7 @@ class GeneSpectraAdapterOrthologousGroupField(Enum):
 
     ORTHOLOGOUS_GROUP_ID = "eggnog_og_id"
     EGGNOG_DATASET_NAME = "eggnog_dataset_name"
-    EGGNOG_DATASET_ID = 'eggnog_dataset_id'
+    EGGNOG_DATASET_ID = "eggnog_dataset_id"
 
 
 class GeneSpectraAdapterEdgeType(Enum):
@@ -82,22 +84,22 @@ class GeneSpectraAdapterEdgeType(Enum):
 
 ## fields relevant to the edges
 
+
 class GeneSpectraAdapterEdgeField(Enum):
     """
     Enum for the fields of the edges.
-        
+
     """
 
-    SPECIFICITY_CATEGORY_TYPE = 'specificity_category_type'
-    SPECIFICITY_CATEGORY = 'specificity_category'
-    SPECIFICITY_SCORE = 'specificity_score'
-    DISTRIBUTION_CATEGORY = 'distribution_catehory'
-    NUMBER_EXPRESSED = 'n_expressed'
-    MEAN_EXPRESSION = 'mean_expression'
-    MAX_EXPRESSION = 'max_expression'
-    FRACTION_EXPRESSED = 'fraction_expressed'
-    GROUPS_EXPRESSED = 'groups_expressed'
-
+    SPECIFICITY_CATEGORY_TYPE = "specificity_category_type"
+    SPECIFICITY_CATEGORY = "specificity_category"
+    SPECIFICITY_SCORE = "specificity_score"
+    DISTRIBUTION_CATEGORY = "distribution_catehory"
+    NUMBER_EXPRESSED = "n_expressed"
+    MEAN_EXPRESSION = "mean_expression"
+    MAX_EXPRESSION = "max_expression"
+    FRACTION_EXPRESSED = "fraction_expressed"
+    GROUPS_EXPRESSED = "groups_expressed"
 
 
 class GeneSpectraAdapter:
@@ -126,8 +128,9 @@ class GeneSpectraAdapter:
         ## load genespectra data
         ## so far it is an all-in-one file
 
-    def load_genespectra_data(self, eggnog_file=None, cell_ontology_file=None, genespectra_file=None):
-
+    def load_genespectra_data(
+        self, eggnog_file=None, cell_ontology_file=None, genespectra_file=None
+    ):
         """
         Read genespectra output csv and get dataframe for relevant fields.
         """
@@ -136,10 +139,12 @@ class GeneSpectraAdapter:
         # read data
 
         self.eggnog = pd.read_csv(
-            eggnog_file, delimiter=',', header=0, dtype=str,
-        
+            eggnog_file,
+            delimiter=",",
+            header=0,
+            dtype=str,
         )
-        
+
         self.eggnog = self.eggnog[
             [
                 field.value
@@ -150,10 +155,11 @@ class GeneSpectraAdapter:
             ]
         ]
 
-
-
         self.genespectra = pd.read_csv(
-            genespectra_file, sep=",", header=0, dtype=str,# read all properties as str, nxbi_txid can get error for being int
+            genespectra_file,
+            sep=",",
+            header=0,
+            dtype=str,  # read all properties as str, nxbi_txid can get error for being int
         )
 
         # filter only relevant fields
@@ -168,12 +174,21 @@ class GeneSpectraAdapter:
             ]
         ]
 
-        self.genespectra_enriched = self.genespectra.loc[self.genespectra.specificity_category_type == 'enriched'].drop_duplicates()
-        self.genespectra_enhanced = self.genespectra.loc[self.genespectra.specificity_category_type  == 'enhanced'].drop_duplicates()
-        self.genespectra_lowspec = self.genespectra.loc[self.genespectra.specificity_category_type  == 'low cell type specificity'].drop_duplicates()
+        self.genespectra_enriched = self.genespectra.loc[
+            self.genespectra.specificity_category_type == "enriched"
+        ].drop_duplicates()
+        self.genespectra_enhanced = self.genespectra.loc[
+            self.genespectra.specificity_category_type == "enhanced"
+        ].drop_duplicates()
+        self.genespectra_lowspec = self.genespectra.loc[
+            self.genespectra.specificity_category_type == "low cell type specificity"
+        ].drop_duplicates()
 
         self.cell_ontology = pd.read_csv(
-            cell_ontology_file, sep=",", header=0, dtype=str, # read all properties as str, nxbi_txid can get error for being int
+            cell_ontology_file,
+            sep=",",
+            header=0,
+            dtype=str,  # read all properties as str, nxbi_txid can get error for being int
         )
 
         # filter only relevant fields
@@ -192,22 +207,24 @@ class GeneSpectraAdapter:
         # to include both genes in eggnog but not specific
         # and genes in genespectra but not in eggnog
         # we need to merge both dataframes
-        self.gene = pd.concat([self.eggnog[
+        self.gene = pd.concat(
             [
-                field.value
-                for field in GeneSpectraAdapterGeneField
-                if field.value in self.eggnog.columns
+                self.eggnog[
+                    [
+                        field.value
+                        for field in GeneSpectraAdapterGeneField
+                        if field.value in self.eggnog.columns
+                    ]
+                ].drop_duplicates(),
+                self.genespectra[
+                    [
+                        field.value
+                        for field in GeneSpectraAdapterGeneField
+                        if field.value in self.genespectra.columns
+                    ]
+                ].drop_duplicates(),
             ]
-        ].drop_duplicates(), self.genespectra[
-            [
-                field.value
-                for field in GeneSpectraAdapterGeneField
-                if field.value in self.genespectra.columns
-            ]
-        ].drop_duplicates()]
-            
         ).drop_duplicates()
-
 
         self.orthologous_group = self.eggnog[
             [
@@ -233,17 +250,12 @@ class GeneSpectraAdapter:
             ]
         ].drop_duplicates()
 
-
-
     # def get_nodes_eggnog(self):
     #     """generate gene, orthologous group and species nodes from eggnog data
 
     #     :yield: _description_
     #     :rtype: _type_
     #     """
-
-        
-
 
     # def get_nodes_cell_ontology(self):
     #     """generate cell types from cell ontology data
@@ -262,9 +274,6 @@ class GeneSpectraAdapter:
     #             "tissue_name": node[GeneSpectraAdapterCellTypeField.TISSUE_NAME.value],},
     #         )
 
-
-
-
     def get_nodes(self):
         """
         Returns a generator of node tuples for node types specified in the
@@ -273,59 +282,91 @@ class GeneSpectraAdapter:
 
         logger.info("Generating nodes.")
 
- 
         # GENES: for each node (row), yield a 3-tuple of node id (the 'NAME'
         # column with 'hgnc:' prefix), node label (hardcode to 'gene' for now),
         # and node properties (dict of column names and values, except the
         # 'NAME')
 
-        
         self.nodes = []
 
-        print('get gene nodes from genespectra and EggNOG')
+        print("get gene nodes from genespectra and EggNOG")
 
         for _, node in self.gene.iterrows():
             yield (
                 node[GeneSpectraAdapterGeneField.GENE_ID.value],
                 "gene",
-                {"external_gene_name": node[GeneSpectraAdapterGeneField.GENE_NAME.value],
-                 "ensembl_peptide_id": node[GeneSpectraAdapterGeneField.PEPTIDE_ID.value],},
+                {
+                    "external_gene_name": node[
+                        GeneSpectraAdapterGeneField.GENE_NAME.value
+                    ],
+                    "ensembl_peptide_id": node[
+                        GeneSpectraAdapterGeneField.PEPTIDE_ID.value
+                    ],
+                },
             )
 
-        print('get OG nodes from EggNOG')
+        print("get OG nodes from EggNOG")
 
         for _, node in self.orthologous_group.iterrows():
-                yield (
-                    node[GeneSpectraAdapterOrthologousGroupField.ORTHOLOGOUS_GROUP_ID.value],
-                    "orthologous_group",
-                    {"eggnog_dataset_name": node[GeneSpectraAdapterOrthologousGroupField.EGGNOG_DATASET_NAME.value],
-                    "eggnog_dataset_id": node[GeneSpectraAdapterOrthologousGroupField.EGGNOG_DATASET_ID.value],},
-                )
+            yield (
+                node[
+                    GeneSpectraAdapterOrthologousGroupField.ORTHOLOGOUS_GROUP_ID.value
+                ],
+                "orthologous_group",
+                {
+                    "eggnog_dataset_name": node[
+                        GeneSpectraAdapterOrthologousGroupField.EGGNOG_DATASET_NAME.value
+                    ],
+                    "eggnog_dataset_id": node[
+                        GeneSpectraAdapterOrthologousGroupField.EGGNOG_DATASET_ID.value
+                    ],
+                },
+            )
 
-        print('get species nodes from EggNOG')
+        print("get species nodes from EggNOG")
 
         for _, node in self.species.iterrows():
             yield (
                 node[GeneSpectraAdapterSpeciesField.SPECIES_ID.value],
                 "species",
-                {"species_scientific_name": node[GeneSpectraAdapterSpeciesField.SPECIES_NAME.value],},
+                {
+                    "species_scientific_name": node[
+                        GeneSpectraAdapterSpeciesField.SPECIES_NAME.value
+                    ],
+                },
             )
 
-        print('get cell type nodes from cell ontology info')
+        print("get cell type nodes from cell ontology info")
 
         for _, node in self.cell_type.iterrows():
             yield (
                 node[GeneSpectraAdapterCellTypeField.CELL_TYPE_NAME.value],
                 "cell_type",
-                {"cell_type_name": node[GeneSpectraAdapterCellTypeField.CELL_TYPE_NAME.value],
-                 "cell_ontology_id": node[GeneSpectraAdapterCellTypeField.CELL_TYPE_ID.value],
-                "uberon_tissue_id": node[GeneSpectraAdapterCellTypeField.TISSUE_ID.value],
-                "tissue_name": node[GeneSpectraAdapterCellTypeField.TISSUE_NAME.value],
-                "broad_type": node[GeneSpectraAdapterCellTypeField.BROAD_TYPE.value],
-                "broad_type_2": node[GeneSpectraAdapterCellTypeField.BROAD_TYPE_2.value],
-                "broad_type_3": node[GeneSpectraAdapterCellTypeField.BROAD_TYPE_3.value],},
+                {
+                    "cell_type_name": node[
+                        GeneSpectraAdapterCellTypeField.CELL_TYPE_NAME.value
+                    ],
+                    "cell_ontology_id": node[
+                        GeneSpectraAdapterCellTypeField.CELL_TYPE_ID.value
+                    ],
+                    "uberon_tissue_id": node[
+                        GeneSpectraAdapterCellTypeField.TISSUE_ID.value
+                    ],
+                    "tissue_name": node[
+                        GeneSpectraAdapterCellTypeField.TISSUE_NAME.value
+                    ],
+                    "broad_type": node[
+                        GeneSpectraAdapterCellTypeField.BROAD_TYPE.value
+                    ],
+                    "broad_type_2": node[
+                        GeneSpectraAdapterCellTypeField.BROAD_TYPE_2.value
+                    ],
+                    "broad_type_3": node[
+                        GeneSpectraAdapterCellTypeField.BROAD_TYPE_3.value
+                    ],
+                },
             )
-        
+
     def get_edges(self):
         """
         Returns a generator of edge tuples for edge types specified in the
@@ -337,22 +378,20 @@ class GeneSpectraAdapter:
 
         # if not self.nodes:
         #     raise ValueError("No nodes found. Please run get_nodes() first.")
-        
+
         # yield 5-tuple of edge id, source node id, target node id, edge label
         # (hardcode to 'variant_in_gene' for now), and edge properties (empty
         # dict for now)
 
-
-
-        print('Get cell type from species edges')
+        print("Get cell type from species edges")
 
         ct_from_species_df = self.cell_ontology[
             [
                 field.value
                 for field in GeneSpectraAdapterCellTypeField
                 if field.value in self.cell_ontology.columns
-            ] +
-            [
+            ]
+            + [
                 field.value
                 for field in GeneSpectraAdapterSpeciesField
                 if field.value in self.cell_ontology.columns
@@ -370,38 +409,39 @@ class GeneSpectraAdapter:
                 "cell_type_from_species",
                 {},
             )
-    
-    
-        print('Get gene from species edges')
+
+        print("Get gene from species edges")
 
         ## include also genes quantified in genespectra but not in any eggnog group
 
-        gene_from_species_df = pd.concat([self.eggnog[
+        gene_from_species_df = pd.concat(
             [
-                field.value
-                for field in GeneSpectraAdapterGeneField
-                if field.value in self.eggnog.columns
-            ] +
-            [
-                field.value
-                for field in GeneSpectraAdapterSpeciesField
-                if field.value in self.eggnog.columns
+                self.eggnog[
+                    [
+                        field.value
+                        for field in GeneSpectraAdapterGeneField
+                        if field.value in self.eggnog.columns
+                    ]
+                    + [
+                        field.value
+                        for field in GeneSpectraAdapterSpeciesField
+                        if field.value in self.eggnog.columns
+                    ]
+                ].drop_duplicates(),
+                self.genespectra[
+                    [
+                        field.value
+                        for field in GeneSpectraAdapterGeneField
+                        if field.value in self.genespectra.columns
+                    ]
+                    + [
+                        field.value
+                        for field in GeneSpectraAdapterSpeciesField
+                        if field.value in self.genespectra.columns
+                    ]
+                ].drop_duplicates(),
             ]
-        ].drop_duplicates(), self.genespectra[
-            [
-                field.value
-                for field in GeneSpectraAdapterGeneField
-                if field.value in self.genespectra.columns
-            ] +
-            [
-                field.value
-                for field in GeneSpectraAdapterSpeciesField
-                if field.value in self.genespectra.columns
-            ]
-        ].drop_duplicates()]
-            
         ).drop_duplicates()
-
 
         for _, row in gene_from_species_df.iterrows():
             gene_id = row[GeneSpectraAdapterGeneField.GENE_ID.value]
@@ -415,26 +455,25 @@ class GeneSpectraAdapter:
                 {},
             )
 
-
-    
-        print('Get gene from OG edges')
+        print("Get gene from OG edges")
         gene_from_orthologous_group_df = self.eggnog[
             [
                 field.value
                 for field in GeneSpectraAdapterGeneField
                 if field.value in self.eggnog.columns
-            ] +
-            [
+            ]
+            + [
                 field.value
                 for field in GeneSpectraAdapterOrthologousGroupField
                 if field.value in self.eggnog.columns
             ]
         ].drop_duplicates()
 
-
         for _, row in gene_from_orthologous_group_df.iterrows():
             gene_id = row[GeneSpectraAdapterGeneField.GENE_ID.value]
-            og_id = row[GeneSpectraAdapterOrthologousGroupField.ORTHOLOGOUS_GROUP_ID.value]
+            og_id = row[
+                GeneSpectraAdapterOrthologousGroupField.ORTHOLOGOUS_GROUP_ID.value
+            ]
             _id = hashlib.md5((gene_id + og_id).encode("utf-8")).hexdigest()
             yield (
                 _id,
@@ -444,21 +483,19 @@ class GeneSpectraAdapter:
                 {},
             )
 
-
-    
-        print('Get gene enriched in cell type edges')
+        print("Get gene enriched in cell type edges")
         gene_enriched_in_cell_type_df = self.genespectra_enriched[
             [
                 field.value
                 for field in GeneSpectraAdapterGeneField
                 if field.value in self.genespectra_enriched.columns
-            ] +
-            [
+            ]
+            + [
                 field.value
                 for field in GeneSpectraAdapterCellTypeField
                 if field.value in self.genespectra_enriched.columns
-            ] +
-            [
+            ]
+            + [
                 field.value
                 for field in GeneSpectraAdapterEdgeField
                 if field.value in self.genespectra_enriched.columns
@@ -474,30 +511,47 @@ class GeneSpectraAdapter:
                 gene_id,
                 ct_id,
                 "gene_enriched_in_cell_type",
-                {"specificity_category": row[GeneSpectraAdapterEdgeField.SPECIFICITY_CATEGORY.value],
-                "specificity_score": row[GeneSpectraAdapterEdgeField.SPECIFICITY_SCORE.value],
-                "distribution_category": row[GeneSpectraAdapterEdgeField.DISTRIBUTION_CATEGORY.value],
-                "max_expression" : row[GeneSpectraAdapterEdgeField.MAX_EXPRESSION.value],
-                "mean_expression": row[GeneSpectraAdapterEdgeField.MEAN_EXPRESSION.value],
-                "number_expressed": row[GeneSpectraAdapterEdgeField.NUMBER_EXPRESSED.value],
-                "fraction_expressed": row[GeneSpectraAdapterEdgeField.FRACTION_EXPRESSED.value],
-                "groups_expressed": row[GeneSpectraAdapterEdgeField.GROUPS_EXPRESSED.value],},
+                {
+                    "specificity_category": row[
+                        GeneSpectraAdapterEdgeField.SPECIFICITY_CATEGORY.value
+                    ],
+                    "specificity_score": row[
+                        GeneSpectraAdapterEdgeField.SPECIFICITY_SCORE.value
+                    ],
+                    "distribution_category": row[
+                        GeneSpectraAdapterEdgeField.DISTRIBUTION_CATEGORY.value
+                    ],
+                    "max_expression": row[
+                        GeneSpectraAdapterEdgeField.MAX_EXPRESSION.value
+                    ],
+                    "mean_expression": row[
+                        GeneSpectraAdapterEdgeField.MEAN_EXPRESSION.value
+                    ],
+                    "number_expressed": row[
+                        GeneSpectraAdapterEdgeField.NUMBER_EXPRESSED.value
+                    ],
+                    "fraction_expressed": row[
+                        GeneSpectraAdapterEdgeField.FRACTION_EXPRESSED.value
+                    ],
+                    "groups_expressed": row[
+                        GeneSpectraAdapterEdgeField.GROUPS_EXPRESSED.value
+                    ],
+                },
             )
 
-    
-        print('Get gene enhanced in cell type edges')
+        print("Get gene enhanced in cell type edges")
         gene_enhanced_in_cell_type_df = self.genespectra_enhanced[
             [
                 field.value
                 for field in GeneSpectraAdapterGeneField
                 if field.value in self.genespectra_enhanced.columns
-            ] +
-            [
+            ]
+            + [
                 field.value
                 for field in GeneSpectraAdapterCellTypeField
                 if field.value in self.genespectra_enhanced.columns
-            ]+
-            [
+            ]
+            + [
                 field.value
                 for field in GeneSpectraAdapterEdgeField
                 if field.value in self.genespectra_enriched.columns
@@ -513,29 +567,47 @@ class GeneSpectraAdapter:
                 gene_id,
                 ct_id,
                 "gene_enhanced_in_cell_type",
-                {"specificity_category": row[GeneSpectraAdapterEdgeField.SPECIFICITY_CATEGORY.value],
-                "specificity_score": row[GeneSpectraAdapterEdgeField.SPECIFICITY_SCORE.value],
-                "distribution_category": row[GeneSpectraAdapterEdgeField.DISTRIBUTION_CATEGORY.value],
-                "max_expression" : row[GeneSpectraAdapterEdgeField.MAX_EXPRESSION.value],
-                "mean_expression": row[GeneSpectraAdapterEdgeField.MEAN_EXPRESSION.value],
-                "number_expressed": row[GeneSpectraAdapterEdgeField.NUMBER_EXPRESSED.value],
-                "fraction_expressed": row[GeneSpectraAdapterEdgeField.FRACTION_EXPRESSED.value],
-                "groups_expressed": row[GeneSpectraAdapterEdgeField.GROUPS_EXPRESSED.value],},
+                {
+                    "specificity_category": row[
+                        GeneSpectraAdapterEdgeField.SPECIFICITY_CATEGORY.value
+                    ],
+                    "specificity_score": row[
+                        GeneSpectraAdapterEdgeField.SPECIFICITY_SCORE.value
+                    ],
+                    "distribution_category": row[
+                        GeneSpectraAdapterEdgeField.DISTRIBUTION_CATEGORY.value
+                    ],
+                    "max_expression": row[
+                        GeneSpectraAdapterEdgeField.MAX_EXPRESSION.value
+                    ],
+                    "mean_expression": row[
+                        GeneSpectraAdapterEdgeField.MEAN_EXPRESSION.value
+                    ],
+                    "number_expressed": row[
+                        GeneSpectraAdapterEdgeField.NUMBER_EXPRESSED.value
+                    ],
+                    "fraction_expressed": row[
+                        GeneSpectraAdapterEdgeField.FRACTION_EXPRESSED.value
+                    ],
+                    "groups_expressed": row[
+                        GeneSpectraAdapterEdgeField.GROUPS_EXPRESSED.value
+                    ],
+                },
             )
 
-        print('Get gene low specifricity in species edges')
+        print("Get gene low specifricity in species edges")
         gene_lowspec_in_sp_df = self.genespectra_lowspec[
             [
                 field.value
                 for field in GeneSpectraAdapterGeneField
                 if field.value in self.genespectra_lowspec.columns
-            ] +
-            [
+            ]
+            + [
                 field.value
                 for field in GeneSpectraAdapterSpeciesField
                 if field.value in self.genespectra_lowspec.columns
-            ] +
-            [
+            ]
+            + [
                 field.value
                 for field in GeneSpectraAdapterEdgeField
                 if field.value in self.genespectra_lowspec.columns
@@ -551,26 +623,39 @@ class GeneSpectraAdapter:
                 gene_id,
                 sp_id,
                 "gene_low_specificity_in_species",
-                {"specificity_category": row[GeneSpectraAdapterEdgeField.SPECIFICITY_CATEGORY.value],
-                "specificity_score": row[GeneSpectraAdapterEdgeField.SPECIFICITY_SCORE.value],
-                "distribution_category": row[GeneSpectraAdapterEdgeField.DISTRIBUTION_CATEGORY.value],
-                "max_expression" : row[GeneSpectraAdapterEdgeField.MAX_EXPRESSION.value],
-                "mean_expression": row[GeneSpectraAdapterEdgeField.MEAN_EXPRESSION.value],
-                "number_expressed": row[GeneSpectraAdapterEdgeField.NUMBER_EXPRESSED.value],
-                "fraction_expressed": row[GeneSpectraAdapterEdgeField.FRACTION_EXPRESSED.value],
-                "groups_expressed": row[GeneSpectraAdapterEdgeField.GROUPS_EXPRESSED.value],},
+                {
+                    "specificity_category": row[
+                        GeneSpectraAdapterEdgeField.SPECIFICITY_CATEGORY.value
+                    ],
+                    "specificity_score": row[
+                        GeneSpectraAdapterEdgeField.SPECIFICITY_SCORE.value
+                    ],
+                    "distribution_category": row[
+                        GeneSpectraAdapterEdgeField.DISTRIBUTION_CATEGORY.value
+                    ],
+                    "max_expression": row[
+                        GeneSpectraAdapterEdgeField.MAX_EXPRESSION.value
+                    ],
+                    "mean_expression": row[
+                        GeneSpectraAdapterEdgeField.MEAN_EXPRESSION.value
+                    ],
+                    "number_expressed": row[
+                        GeneSpectraAdapterEdgeField.NUMBER_EXPRESSED.value
+                    ],
+                    "fraction_expressed": row[
+                        GeneSpectraAdapterEdgeField.FRACTION_EXPRESSED.value
+                    ],
+                    "groups_expressed": row[
+                        GeneSpectraAdapterEdgeField.GROUPS_EXPRESSED.value
+                    ],
+                },
             )
 
-
-
-
-   
     def get_node_count(self):
         """
         Returns the number of nodes generated by the adapter.
         """
         return len(list(self.get_nodes()))
-    
 
     def _set_types_and_fields(self, node_types, node_fields, edge_types, edge_fields):
         if node_types:
@@ -587,7 +672,7 @@ class GeneSpectraAdapter:
                     GeneSpectraAdapterCellTypeField,
                     GeneSpectraAdapterGeneField,
                     GeneSpectraAdapterOrthologousGroupField,
-                    GeneSpectraAdapterSpeciesField
+                    GeneSpectraAdapterSpeciesField,
                 )
             ]
 

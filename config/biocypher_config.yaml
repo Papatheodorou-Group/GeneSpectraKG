@@ -3,14 +3,15 @@
 biocypher:
   offline: true
   debug: false
-  schema_config_path: config/schema_config.yaml
+  schema_config_path: config/schema_config_wilcox_logit.yaml
 
 neo4j:
   delimiter: '\t'
-  array_delimiter: '|'
+  array_delimiter: "|"
   skip_duplicate_nodes: true
   skip_bad_relationships: true
-  database_name: broadtaxo # new param for neo4j database name write_import_call for taxo cs data, default is called 'neo4j'
+  # database_name: broadtaxo # new param for neo4j database name write_import_call for taxo cs data, default is called 'neo4j'
+  database_name: mtg-wilcox
 
   # Ontology configuration
   head_ontology:
@@ -18,17 +19,12 @@ neo4j:
     root_node: entity
 
   tail_ontologies:
-
     cl:
       url: http://purl.obolibrary.org/obo/cl.owl
       head_join_node: cell
       tail_join_node: cell
-    
+
     ncbitaxon:
       url: http://purl.obolibrary.org/obo/ncbitaxon.owl
       head_join_node: cellular organism
       tail_join_node: cellular organisms
-
-      
-
-    

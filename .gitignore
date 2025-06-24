@@ -4,6 +4,18 @@ results/*.csv
 template_package/adapters/GeneSpectraKG.code-workspace
 data/
 
+# Data
+
+*.pt
+*.pkl
+*.tar.gz
+*.zip
+notebooks/4_species_heterodata_ct_name/
+notebooks/all_sp_heterodata/
+notebooks/all_sp_heterodata_only_gene_cell_edges/
+
+
+
 .DS_Store
 biocypher-*
 .vscode

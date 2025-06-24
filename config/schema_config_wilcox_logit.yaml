@@ -1,0 +1,77 @@
+###############
+# Nodes
+###############
+
+gene:
+  represented_as: node
+  preferred_id: gene_id
+  label_in_input: gene
+  properties:
+    species_of_origin: str
+    peptide_id: str
+    is_a_go_tf: bool
+    description: str
+    preferred_name: str
+    preferred_name_wilcox: str
+    preferred_name_and_species: str
+    pfams: str
+    gos: str
+    kegg_ko: str
+    kegg_pathway: str
+
+# cell type needs to be associated with tissue
+cell type:
+  represented_as: node
+  preferred_id: cl
+  label_in_input: cell_type # this means giving it a node labeled as cell_type it will become a cell type node
+  # it cannot map to exact CL ids because I need to give all the CL labels (node id) here
+  # open an issue for feature request
+  is_a: cell # biolink
+  properties:
+    species_of_origin: str
+    cell_type_name: str
+    cell_type_ontology_name: str
+    cell_type_name_and_species: str
+    cell_type_id: str
+    broad_type: str
+    broad_type_2: str
+    broad_type_3: str
+    broad_taxo_cs: str
+
+orthologous group:
+  represented_as: node
+  preferred_id: og_id
+  label_in_input: orthologous_group
+  is_a: gene family # biolink
+  properties:
+    eggnog_dataset_name: str # at which layer the orhologous group is calculated, e.g. mammalia; eukaryota...
+    eggnog_dataset_id: str
+    orthologous_group_id: str
+    orthologous_group_id_and_dataset: str
+
+###############
+# Associations
+###############
+gene in orthologous group:
+  represented_as: edge
+  is_relationship: true
+  present_in_knowledge_graph: true
+  is_a: gene to gene family association
+  label_in_input: gene_in_orthologous_group
+  source: Gene # this syntax for biochatter select relationships, "pascalcase"
+  target: OrthologousGroup
+
+gene wilcox marker in cell type:
+  represented_as: edge
+  is_relationship: true
+  present_in_knowledge_graph: true
+  is_a: association
+  label_in_input: gene_wilcox_marker_in_cell_type
+  source: Gene # this syntax for biochatter select relationships, "pascalcase"
+  target: CellType
+  properties:
+    p_val: float
+    avg_log2fc: float
+    p_val_adj: float
+    p_val_adj_ranking: float
+    avg_log2fc_ranking: float
